@@ -2,8 +2,8 @@
     #title          :gw_handler.sh
     #description    :this gateway administration tool provides basic functions as well as a simple terminal based GUI.
     #author         :rektosauruz
-    #date           :20193005
-    #version        :v1.5
+    #date           :20193105
+    #version        :v1.8
     #usage          :./gw_handler.sh
     #notes          :size limit must be set for the primary data chunk, check for line 49.
     #bash_version   :4.4-5
@@ -155,6 +155,52 @@ test_parser_mqtt &
 
 
 
+
+#################################################
+#################################################
+
+
+test_connection() {
+
+testv=`ping -c 1 -w 1 8.8.8.8 | grep ttl`
+    if [ -z "$testv" ];
+        then
+        echo "Internet Connection is ${RED}DOWN${RESET}"
+        sleep 1
+        return 1
+    else
+        echo "Internet Connection is ${GREEN}UP${RESET}"
+        sleep 1
+        return 1
+    fi
+
+}
+
+
+
+Ipv4_chk() {
+#echo "your IP is ${GREEN}`ifconfig wlp3s0 | grep "inet " | cut -d't' -f2 | cut -d'n' -f1`${RESET}"
+echo "your IP is ${GREEN}`ifconfig wlan0 | grep "inet " | cut -d't' -f2 | cut -d'n' -f1`${RESET}"
+sleep 3
+return 1
+}
+
+
+
+scan_LAN_devices() {
+
+echo "${GREEN}`arp -a`${RESET}" 
+sleep 3
+
+}
+
+
+
+#################################################
+#################################################
+
+
+
 ##################!  MENU  !##################
 while :
 do
@@ -165,16 +211,16 @@ do
     `echo -e "${RED}| '_ \ / _ \ / _  |/ _ \ '__| \ \/ / | |  _ \ \ /\ / /${RESET}"`
     `echo -e "${RED}| | | | (_) | (_| |  __/ |  | |>  <| | |_| | \ V  V /${RESET}"`
     `echo -e "${RED}|_| |_|\___/ \__,_|\___|_|  |_/_/\_\ |\____|  \_/\_/${RESET}"`
-    `echo -e "${RED}                                   |_| v1.1        ${RESET}"`
-    ${GREEN}========================================================${RESET}
-    |${GREEN} [001] Get-data(node)${RESET}  ||| ${GREEN}[007] N-A${RESET}   ||| ${GREEN}[00n] N-A ${RESET} |   
-    |${GREEN} [002] Parse-data${RESET}      ||| ${GREEN}[008] N-A${RESET}   ||| ${GREEN}[00v] N-A${RESET}  |  
-    |${GREEN} [003] Send-data(cloud)${RESET}||| ${GREEN}[009] N-A${RESET}   ||| ${GREEN}[00a] N-A${RESET}  |
-    |${GREEN} [004] Initiate-Process${RESET}||| ${GREEN}[00l] N-A${RESET}   ||| ${GREEN}[00c] N-A${RESET}  |
-    |${GREEN} [005] N-A ${RESET}            ||| ${GREEN}[00w] N-A${RESET}   ||| ${GREEN}[00s] N-A${RESET}  |
-    |${GREEN} [006] N-A${RESET}             ||| ${GREEN}[00d] N-A${RESET}   ||| ${GREEN}[00p] N-A${RESET}  |  
-    |${GREEN} [00f] N-A${RESET}             ||| ${GREEN}[00g] N-A${RESET}   ||| ${GREEN}[---] N-A${RESET}  |
-  ${RED}(q)uit${RESET}${GREEN}====================================================${RESET}
+    `echo -e "${RED}                                   |_| v1.8        ${RESET}"`
+    ${GREEN}============================================================${RESET}
+    |${GREEN}[-1-] Get-data(node)${RESET}   |||${GREEN}[-7-] WAN-access${RESET} |||${RED}[-n-] N-A ${RESET} |   
+    |${GREEN}[-2-] Parse-data${RESET}       |||${GREEN}[-8-] Ipv4-check${RESET} |||${RED}[-v-] N-A${RESET}  |  
+    |${GREEN}[-3-] Send-data(cloud)${RESET} |||${GREEN}[-9-] LAN-scan  ${RESET} |||${RED}[-a-] N-A${RESET}  |
+    |${GREEN}[-4-] Initiate-Process${RESET} |||${RED}[-l-] N-A${RESET}        |||${RED}[-c-] N-A${RESET}  |
+    |${RED}[-5-] N-A ${RESET}             |||${RED}[-w-] N-A${RESET}        |||${RED}[-s-] N-A${RESET}  |
+    |${RED}[-6-] N-A${RESET}              |||${RED}[-d-] N-A${RESET}        |||${RED}[-p-] N-A${RESET}  |  
+    |${RED}[-f-] N-A${RESET}              |||${RED}[-g-] N-A${RESET}        |||${RED}[---] N-A${RESET}  |
+  ${RED}(q)uit${RESET}${GREEN}========================================================${RESET}
     
 EOF
 ##################!  MENU  !##################
@@ -190,9 +236,9 @@ read -n1 -s
     "4")  test_start_gw ;;
 #    "5")  sha256 ;;
 #    "6")  tar_archiever ;;
-#    "7")  test_function ;; 
-#    "8")  scan_last_two  ;;  
-#    "9")  test_connection ;; 
+    "7")  test_connection ;; 
+    "8")  Ipv4_chk  ;;  
+    "9")  scan_LAN_devices ;; 
 #    "l")  Ipv4_chk ;;
 #    "a")  echo "invalid option" ;;
 #    "c")  echo "invalid option"1 ;;  

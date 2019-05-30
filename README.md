@@ -57,3 +57,16 @@ sudo wget https://pki.goog/roots.pem
 ### create SHA256 key pair
 openssl genrsa -out rsa_private.pem 2048
 openssl rsa -in rsa_private.pem -pubout -out rsa_public.pem
+
+
+
+
+
+
+####FURTHER IMPLEMENTATION
+
+### GATEWAY DEVICE LINK, SPECS
+https://www.matchx.io/hardware/
+
+### OS FOR GW LINK, SPECS
+https://openwrt.org/downloads
