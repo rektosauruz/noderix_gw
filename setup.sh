@@ -38,6 +38,8 @@ else
 	sudo chmod 777 data_cache/
 	sudo chmod 777 node_log/
 	sudo chmod 777 streaming.log
+	sudo chmod 777 1_gw_send.py
+	sudo chmod 777 gw_handler.sh
 
 
 fi

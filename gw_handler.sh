@@ -37,6 +37,12 @@ GB=$ESC"48;5;40m"
 
 
 
+if [ "`whoami`" != "root" ]; then 
+	echo "Please run as root"
+	exit 0
+fi
+
+
 
 
 #################################################
@@ -51,6 +57,12 @@ while true; do
     ####DETERMINE LOG CACHE SIZE BEFORE EXECTION####
     sudo /home/pi/single_chan_pkt_fwd/single_chan_pkt_fwd | head -c 777 > /home/pi/noderix_gw/node_log/logs"$fid".txt
     
+    ####below are for testing purposes
+    ##echo "hello" > /home/omnivoid/noderix_gw/node_log/logs"$fid".txt
+    ##sleep 3
+
+
+
     fid=$((fid + 1))
     
 done
@@ -66,15 +78,20 @@ count=0
 while true; do
 
 ltc="`ls /home/pi/noderix_gw/node_log/ | head -1`"
+##ltc="`ls /home/omnivoid/noderix_gw/node_log/ | head -1`"
+
 
     if [ ! -z "$ltc" ]; then
 
         sudo cat /home/pi/noderix_gw/node_log/"$ltc" | grep Gelen | cut -d',' -f2-10 > /home/pi/noderix_gw/data_cache/clean"$count".log
         sudo rm /home/pi/noderix_gw/node_log/"$ltc"
+        ##sudo cat /home/omnivoid/noderix_gw/node_log/"$ltc" | grep Gelen | cut -d',' -f2-10 > /home/omnivoid/noderix_gw/data_cache/clean"$count".log
+        ##sudo rm /home/omnivoid/noderix_gw/node_log/"$ltc"
+
         count=$((count + 1))
-    else
+    #else
         #break
-        echo "${RED}waiting for data collection ##${RESET} ${GREEN}logs(#).txt${RESET} ${RED}files are not created ##${RESET}"
+     #   echo "${RED}waiting for data collection ##${RESET} ${GREEN}logs(#).txt${RESET} ${RED}files are not created ##${RESET}"
     fi
 
 done
@@ -109,11 +126,13 @@ current="`ls /home/pi/noderix_gw/data_cache/ | head -1`"
         done
 
     python 1_gw_send.py
+    ##python /home/omnivoid/community/tutorials/cloud-iot-gateways-rpi/1_gw_send.py
+
     truncate -s 0 /home/pi/noderix_gw/streaming.log
     sudo rm /home/pi/noderix_gw/data_cache/"$current"
 
-    else
-        echo "${RED}waiting for data collection ##${RESET} ${GREEN}clean(#).log ${RESET}${RED} files are not created ##${RESET}"
+    #else
+     #   echo "${RED}waiting for data collection ##${RESET} ${GREEN}clean(#).log ${RESET}${RED} files are not created ##${RESET}"
     fi
 
 done
@@ -149,7 +168,7 @@ do
     `echo -e "${RED}                                   |_| v1.1        ${RESET}"`
     ${GREEN}========================================================${RESET}
     |${GREEN} [001] Get-data(node)${RESET}  ||| ${GREEN}[007] N-A${RESET}   ||| ${GREEN}[00n] N-A ${RESET} |   
-    |${GREEN} [002] Parse-data${RESET}		||| ${GREEN}[008] N-A${RESET}   ||| ${GREEN}[00v] N-A${RESET}  |  
+    |${GREEN} [002] Parse-data${RESET}      ||| ${GREEN}[008] N-A${RESET}   ||| ${GREEN}[00v] N-A${RESET}  |  
     |${GREEN} [003] Send-data(cloud)${RESET}||| ${GREEN}[009] N-A${RESET}   ||| ${GREEN}[00a] N-A${RESET}  |
     |${GREEN} [004] Initiate-Process${RESET}||| ${GREEN}[00l] N-A${RESET}   ||| ${GREEN}[00c] N-A${RESET}  |
     |${GREEN} [005] N-A ${RESET}            ||| ${GREEN}[00w] N-A${RESET}   ||| ${GREEN}[00s] N-A${RESET}  |
