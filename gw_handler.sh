@@ -3,7 +3,7 @@
     #description    :this gateway administration tool provides basic functions as well as a simple terminal based GUI.
     #author         :rektosauruz
     #date           :20193105
-    #version        :v1.8
+    #version        :v2.3
     #usage          :./gw_handler.sh
     #notes          :size limit must be set for the primary data chunk, check for line 49.
     #bash_version   :4.4-5
@@ -55,14 +55,8 @@ fid=0
 while true; do
 
     ####DETERMINE LOG CACHE SIZE BEFORE EXECTION####
-    sudo /home/pi/single_chan_pkt_fwd/single_chan_pkt_fwd | head -c 777 > /home/pi/noderix_gw/node_log/logs"$fid".txt
-    
-    ####below are for testing purposes
-    ##echo "hello" > /home/omnivoid/noderix_gw/node_log/logs"$fid".txt
-    ##sleep 3
-
-
-
+    #sudo /home/pi/single_chan_pkt_fwd/single_chan_pkt_fwd | head -c 777 > /home/pi/noderix_gw/node_log/logs"$fid".txt
+    sudo /home/pi/single_chan_pkt_fwd/single_chan_pkt_fwd | head -c 15000 > /home/pi/noderix_gw/node_log/logs"$fid".txt
     fid=$((fid + 1))
     
 done
@@ -71,27 +65,22 @@ done
 
 
 
-test_log_to_clean_parser () {
+test2_log_to_clean_parser () {
 
 count=0
 
 while true; do
 
-ltc="`ls /home/pi/noderix_gw/node_log/ | head -1`"
-##ltc="`ls /home/omnivoid/noderix_gw/node_log/ | head -1`"
+ltc="`ls -v /home/pi/noderix_gw/node_log/ | head -1`"
 
-
-    if [ ! -z "$ltc" ]; then
+    if [ ! -z "$ltc" ] && [ "`wc -c /home/pi/noderix_gw/node_log/$ltc | awk '{print $1}'`" != "0" ]; then
 
         sudo cat /home/pi/noderix_gw/node_log/"$ltc" | grep Gelen | cut -d',' -f2-10 > /home/pi/noderix_gw/data_cache/clean"$count".log
         sudo rm /home/pi/noderix_gw/node_log/"$ltc"
-        ##sudo cat /home/omnivoid/noderix_gw/node_log/"$ltc" | grep Gelen | cut -d',' -f2-10 > /home/omnivoid/noderix_gw/data_cache/clean"$count".log
-        ##sudo rm /home/omnivoid/noderix_gw/node_log/"$ltc"
-
         count=$((count + 1))
-    #else
-        #break
-     #   echo "${RED}waiting for data collection ##${RESET} ${GREEN}logs(#).txt${RESET} ${RED}files are not created ##${RESET}"
+  
+    else    
+        sleep 5
     fi
 
 done
@@ -101,39 +90,41 @@ done
 
 
 
-test_parser_mqtt () {
-
-#/home/omnivoid/Desktop/clean/pre_production/data_cache/
+test2_parser_mqtt () {
 
 while true; do
 
-current="`ls /home/pi/noderix_gw/data_cache/ | head -1`"
+if [ ! -z "`ls /home/pi/noderix_gw/data_cache`" ]; then
+    
+    echo "blankline" > streaming.log
+   
+    current="`ls -v /home/pi/noderix_gw/data_cache/ | head -1`"
 
-    if [ ! -z "$current" ]; then
+    for i in $(cat /home/pi/noderix_gw/data_cache/"$current"); do
+        device_id="`echo "$i" | cut -d"," -f1`"
+        latitude="`echo "$i" | cut -d"," -f2`"
+        longitude="`echo "$i" | cut -d"," -f3`"
+        tstmp_hh="`echo "$i" | cut -d"," -f4`"
+        tstmp_mm="`echo "$i" | cut -d"," -f5`"
+        tstmp_ss="`echo "$i" | cut -d"," -f6`"
+        panic_bit="`echo "$i" | cut -d"," -f7`"
+        speed="`echo "$i" | cut -d"," -f8`"
+        battery="`echo "$i" | cut -d"," -f9`"
+        output_var="\"uid\":\"$device_id\",\"lat\":\"$latitude\",\"lon\":\"$longitude\",\"ts_hh\":\"$tstmp_hh\",\"ts_mm\":\"$tstmp_mm\",\"ts_ss\":\"$tstmp_ss\",\"pnc\":\"$panic_bit\",\"v\":\"$speed\",\"btt\":\"$battery\""
+        echo "$output_var" >> /home/pi/noderix_gw/streaming.log
+        echo "$output_var" >> /home/pi/noderix_gw/streaming2.log
+    done
+    
+    sudo rm /home/pi/noderix_gw/data_cache/"$current"        
+    python 1_gw_send.py &
+    BACK_PID=$!
+    wait $BACK_PID
 
-        for i in $(cat /home/pi/noderix_gw/data_cache/"$current"); do
-          device_id="`echo "$i" | cut -d"," -f1`"
-          latitude="`echo "$i" | cut -d"," -f2`"
-          longitude="`echo "$i" | cut -d"," -f3`"
-          tstmp_hh="`echo "$i" | cut -d"," -f4`"
-          tstmp_mm="`echo "$i" | cut -d"," -f5`"
-          tstmp_ss="`echo "$i" | cut -d"," -f6`"
-          panic_bit="`echo "$i" | cut -d"," -f7`"
-          speed="`echo "$i" | cut -d"," -f8`"
-          battery="`echo "$i" | cut -d"," -f9`"
-          output_var="\"uid\":\"$device_id\",\"lat\":\"$latitude\",\"lon\":\"$longitude\",\"ts_hh\":\"$tstmp_hh\",\"ts_mm\":\"$tstmp_mm\",\"ts_ss\":\"$tstmp_ss\",\"pnc\":\"$panic_bit\",\"v\":\"$speed\",\"btt\":\"$battery\""
-          echo "$output_var" >> /home/pi/noderix_gw/streaming.log
-        done
 
-    python 1_gw_send.py
-    ##python /home/omnivoid/community/tutorials/cloud-iot-gateways-rpi/1_gw_send.py
+else 
+    sleep 5
 
-    truncate -s 0 /home/pi/noderix_gw/streaming.log
-    sudo rm /home/pi/noderix_gw/data_cache/"$current"
-
-    #else
-     #   echo "${RED}waiting for data collection ##${RESET} ${GREEN}clean(#).log ${RESET}${RED} files are not created ##${RESET}"
-    fi
+fi
 
 done
 
@@ -144,9 +135,21 @@ done
 test_start_gw () {
 
 test_data_collection &
-test_log_to_clean_parser &
-test_parser_mqtt &
+test2_log_to_clean_parser &
+test2_parser_mqtt &
+wait
 
+}
+
+
+
+start_one_two () {
+    
+test2_parser_mqtt &
+test_data_collection &
+test2_log_to_clean_parser & 
+    
+    
 }
 
 #################################################
@@ -211,14 +214,14 @@ do
     `echo -e "${RED}| '_ \ / _ \ / _  |/ _ \ '__| \ \/ / | |  _ \ \ /\ / /${RESET}"`
     `echo -e "${RED}| | | | (_) | (_| |  __/ |  | |>  <| | |_| | \ V  V /${RESET}"`
     `echo -e "${RED}|_| |_|\___/ \__,_|\___|_|  |_/_/\_\ |\____|  \_/\_/${RESET}"`
-    `echo -e "${RED}                                   |_| v1.8        ${RESET}"`
+    `echo -e "${RED}                                   |_| v2.3        ${RESET}"`
     ${GREEN}============================================================${RESET}
     |${GREEN}[-1-] Get-data(node)${RESET}   |||${GREEN}[-7-] WAN-access${RESET} |||${RED}[-n-] N-A ${RESET} |   
     |${GREEN}[-2-] Parse-data${RESET}       |||${GREEN}[-8-] Ipv4-check${RESET} |||${RED}[-v-] N-A${RESET}  |  
     |${GREEN}[-3-] Send-data(cloud)${RESET} |||${GREEN}[-9-] LAN-scan  ${RESET} |||${RED}[-a-] N-A${RESET}  |
     |${GREEN}[-4-] Initiate-Process${RESET} |||${RED}[-l-] N-A${RESET}        |||${RED}[-c-] N-A${RESET}  |
     |${RED}[-5-] N-A ${RESET}             |||${RED}[-w-] N-A${RESET}        |||${RED}[-s-] N-A${RESET}  |
-    |${RED}[-6-] N-A${RESET}              |||${RED}[-d-] N-A${RESET}        |||${RED}[-p-] N-A${RESET}  |  
+    |${GREEN}[-6-] N-A${RESET}              |||${RED}[-d-] N-A${RESET}        |||${RED}[-p-] N-A${RESET}  |  
     |${RED}[-f-] N-A${RESET}              |||${RED}[-g-] N-A${RESET}        |||${RED}[---] N-A${RESET}  |
   ${RED}(q)uit${RESET}${GREEN}========================================================${RESET}
     
@@ -231,11 +234,11 @@ read -n1 -s
     case "$REPLY" in
 
     "1")  test_data_collection ;;
-    "2")  test_log_to_clean_parser ;;
-    "3")  test_parser_mqtt ;;
+    "2")  test2_log_to_clean_parser ;;
+    "3")  test2_parser_mqtt ;;
     "4")  test_start_gw ;;
 #    "5")  sha256 ;;
-#    "6")  tar_archiever ;;
+    "6")  start_one_two ;;
     "7")  test_connection ;; 
     "8")  Ipv4_chk  ;;  
     "9")  scan_LAN_devices ;; 

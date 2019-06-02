@@ -94,9 +94,10 @@ for line in a:
 
 
 
+  ###previous functional version - tested###
+  #payload = '{{ "ts":"123","e_data":{} }}'.format(data)
 
-
-  payload = '{{ "ts":"{}",{} }}'.format(cur_time, data)
+  payload = '{{ "ts":"{}","e_data":{} }}'.format(cur_time, data)
 
 
   # Uncomment following line when ready to publish
