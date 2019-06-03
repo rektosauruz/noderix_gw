@@ -105,6 +105,7 @@ if [ ! -z "`ls /home/pi/noderix_gw/data_cache`" ]; then
         latitude="`echo "$i" | cut -d"," -f2`"
         longitude="`echo "$i" | cut -d"," -f3`"
         tstmp_hh="`echo "$i" | cut -d"," -f4`"
+        (( tstmp_hh += 3 ))
         tstmp_mm="`echo "$i" | cut -d"," -f5`"
         tstmp_ss="`echo "$i" | cut -d"," -f6`"
         panic_bit="`echo "$i" | cut -d"," -f7`"
